@@ -214,13 +214,15 @@ def process_remote_sources(raw_config, environment=None):
         if processor.configs_to_merge:
             for i in processor.configs_to_merge:
                 logger.debug("Merging in remote config \"%s\"", i)
-                remote_config = yaml.safe_load(open(i))
+                raw_remote_config = open(i).read()
+                # call the render again as the package_sources may have merged in
+                # additional environment lookups
+                if not environment:
+                    environment = {}
+                rendered_remote_config = render(str(raw_remote_config), environment)
+                remote_config = yaml.safe_load(rendered_remote_config)
                 config = merge_map(remote_config, config)
-            # Call the render again as the package_sources may have merged in
-            # additional environment lookups
-            if not environment:
-                environment = {}
-            return render(str(config), environment)
+            return str(config)
 
     return raw_config
 
